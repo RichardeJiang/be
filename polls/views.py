@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.http import HttpResponseNotFound
+from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 # Note: a view is a func taking the HTTP request and returns sth accordingly
@@ -14,10 +15,19 @@ def index(request):
 def test(request):
 	return HttpResponse("<h1>This is the very first HTTP request!</h1>")
 
+@csrf_exempt
 def uploadCSV(request):
-	if request.POST and request.FILES:
+	print "Inside the upload function"
+	if request.FILES:
+		print "There is file!"
 		csvFile = request.FILES['file']
+		print request.FILES
+		if request.POST:
+	# if request.POST and request.FILES:
+			csvFile = request.FILES['file']
+			print "Now we got the csv file"
 
-		return HttpResponse("<h1>Got the CSV file.</h1>")
+		return HttpResponse("Got the CSV file.")
 	else:
-		return HttpResponseNotFound('<h1>Page not found</h1>')
+		print "Not found the file!"
+		return HttpResponseNotFound('Page not found for CSV')

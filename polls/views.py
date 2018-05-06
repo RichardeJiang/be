@@ -15,6 +15,7 @@ def index(request):
 def test(request):
 	return HttpResponse("<h1>This is the very first HTTP request!</h1>")
 
+# Note: csr: cross site request, adding this to enable request from localhost
 @csrf_exempt
 def uploadCSV(request):
 	print "Inside the upload function"
@@ -24,6 +25,7 @@ def uploadCSV(request):
 		print request.FILES
 		if request.POST:
 	# if request.POST and request.FILES:
+	# current problem: request from axios not recognized as POST
 			csvFile = request.FILES['file']
 			print "Now we got the csv file"
 

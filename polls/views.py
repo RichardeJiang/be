@@ -6,6 +6,10 @@ from django.http import HttpResponse
 from django.http import HttpResponseNotFound
 from django.views.decorators.csrf import csrf_exempt
 
+import json
+
+from utils import parseCSVFileFromDjangoFile, parseCSVFile, isNumber
+
 # Create your views here.
 # Note: a view is a func taking the HTTP request and returns sth accordingly
 
@@ -23,13 +27,16 @@ def uploadCSV(request):
 		print "There is file!"
 		csvFile = request.FILES['file']
 		print request.FILES
+		print type(csvFile)
+		secondRowContent = parseCSVFile(csvFile)
 		if request.POST:
 	# if request.POST and request.FILES:
 	# current problem: request from axios not recognized as POST
 			csvFile = request.FILES['file']
 			print "Now we got the csv file"
 
-		return HttpResponse("Got the CSV file.")
+		return HttpResponse(json.dumps(secondRowContent))
+		# return HttpResponse("Got the CSV file.")
 	else:
 		print "Not found the file!"
 		return HttpResponseNotFound('Page not found for CSV')

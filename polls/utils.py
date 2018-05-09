@@ -49,16 +49,16 @@ def getAuthorInfo(inputFile):
 	# parsedResult['topCountries'] = topCountries
 
 	authors = [ele['name'] for ele in authorList if ele] # adding in the if ele in case of empty strings; same applies below
-	topAuthors = [{ele[0]:ele[1]} for ele in Counter(authors).most_common(5)]
-	parsedResult['topAuthors'] = topAuthors
+	topAuthors = Counter(authors).most_common(5)
+	parsedResult['topAuthors'] = {'labels': [ele[0] for ele in topAuthors], 'data': [ele[1] for ele in topAuthors]}
 
 	countries = [ele['country'] for ele in authorList if ele]
-	topCountries = [{ele[0]:ele[1]} for ele in Counter(countries).most_common(5)]
-	parsedResult['topCountries'] = topCountries
+	topCountries = Counter(countries).most_common(5)
+	parsedResult['topCountries'] = {'labels': [ele[0] for ele in topCountries], 'data': [ele[1] for ele in topCountries]}
 
 	affiliations = [ele['affiliation'] for ele in authorList if ele]
-	topAffiliations = [{ele[0]:ele[1]} for ele in Counter(affiliations).most_common(5)]
-	parsedResult['topAffiliations'] = topAffiliations
+	topAffiliations = Counter(affiliations).most_common(5)
+	parsedResult['topAffiliations'] = {'labels': [ele[0] for ele in topAffiliations], 'data': [ele[1] for ele in topAffiliations]}
 
 
 	return parsedResult

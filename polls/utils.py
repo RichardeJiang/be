@@ -10,13 +10,52 @@ def isNumber(inputStr):
 
 def returnTestChartData(inputFile):
 	"""
-	Just return dummy data for testing the ECharts construction
+	Just return dummy data for testing the Charts construction
 	"""
 	data = {}
 	data["year"] = [1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999]
 	data["inCitations"] = [12, 18, 34, 45, 23, 99, 65, 45, 55, 90]
 	data["outCitations"] = [34, 41, 9, 23, 39, 74, 35, 12, 90, 44]
-	return data
+	return {'infoType': 'dummy', 'infoData': data}
+
+def getReviewInfo(inputFile):
+	"""
+	review_score.csv
+	data format:
+	review ID | field ID | score
+	e.g. 1,1,3 - score
+	     1,2,5 - confidence
+	     1,3,no - recommended
+	"""
+	parsedResult = {}
+	fileData = inputFile.read().decode("utf-8")
+	lines = fileData.split("\n")[1:]
+	lines = [ele for ele in lines if ele]
+	scores = []
+	confidences = []
+	isRecommended = []
+
+	# another way of thinking:
+	scores = [int(line.split(",")[2]) for line in lines if int(line.split(",")[1]) == 1]
+	confidences = [int(line.split(",")[2]) for line in lines if int(line.split(",")[1]) == 2]
+	isRecommended = [str(line.split(",")[2]).replace("\r", "") for line in lines if int(line.split(",")[1]) == 3]
+
+	# print isRecommended
+	# print isRecommended.count('yes')
+	parsedResult['yesPercentage'] = float(isRecommended.count('yes')) / len(isRecommended)
+	parsedResult['meanScore'] = sum(scores) / float(len(scores))
+	parsedResult['meanConfidence'] = sum(confidences) / float(len(confidences))
+
+	# for line in lines:
+	# 	details = line.split(",")
+	# 	if details[1] == 1:
+	# 		scores.append(details[2])
+	# 	elif details[1] == 2:
+	# 		confidences.append(details[2])
+	# 	else:
+	# 		isRecommended.append(details[2])
+
+	return {'infoType': 'review', 'infoData': parsedResult}
 
 def getAuthorInfo(inputFile):
 	"""
@@ -31,22 +70,9 @@ def getAuthorInfo(inputFile):
 	authorList = []
 	for line in lines:
 		authorInfo = line.replace("\"", "").split(",")
-		print authorInfo
+		# print authorInfo
 		authorList.append({'name': authorInfo[1] + " " + authorInfo[2], 'country': authorInfo[4], 'affiliation': authorInfo[5]})
 	
-	# authors = map(lambda ele: ele['name'], authorList)
-	# authors = [ele for ele in authors if ele] # in case of empty strings; same applies below
-	# topAuthors = []
-	# for authorName, paperCounts in Counter(authors).most_common(5):
-	# 	topAuthors.append({authorName: paperCounts})
-	# parsedResult['topAuthors'] = topAuthors
-
-	# countries = map(lambda ele: ele['country'], authorList)
-	# countries = [ele for ele in countries if ele]
-	# topCountries = []
-	# for countryName, paperCounts in Counter(countries).most_common(5):
-	# 	topCountries.append({countryName: paperCounts})
-	# parsedResult['topCountries'] = topCountries
 
 	authors = [ele['name'] for ele in authorList if ele] # adding in the if ele in case of empty strings; same applies below
 	topAuthors = Counter(authors).most_common(5)
@@ -61,7 +87,7 @@ def getAuthorInfo(inputFile):
 	parsedResult['topAffiliations'] = {'labels': [ele[0] for ele in topAffiliations], 'data': [ele[1] for ele in topAffiliations]}
 
 
-	return parsedResult
+	return {'infoType': 'author', 'infoData': parsedResult}
 
 def parseCSVFileFromDjangoFile(inputFile):
 	parsedResult = {}

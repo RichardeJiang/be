@@ -45,6 +45,7 @@ def getReviewInfo(inputFile):
 	parsedResult['yesPercentage'] = float(isRecommended.count('yes')) / len(isRecommended)
 	parsedResult['meanScore'] = sum(scores) / float(len(scores))
 	parsedResult['meanConfidence'] = sum(confidences) / float(len(confidences))
+	parsedResult['totalReview'] = len(confidences)
 
 	# for line in lines:
 	# 	details = line.split(",")

@@ -2,7 +2,7 @@ import csv
 import codecs
 from collections import Counter
 
-from utils import parseCSVFile, testCSVFileFormatMatching, isNumber
+from utils import parseCSVFile, testCSVFileFormatMatching, isNumber, parseSubmissionTime
 
 def parseAuthorCSVFile(inputFile):
 
@@ -84,6 +84,73 @@ def getReviewScoreInfo(inputFile):
 	parsedResult['totalReview'] = len(confidences)
 
 	return {'infoType': 'review', 'infoData': parsedResult}
+
+def getSubmissionInfo(inputFile):
+	"""
+	submission.csv
+	data format: 
+	submission ID | track ID | track name | title | authors | submit time | last update time | form fields | keywords | decision | notified | reviews sent | abstract
+	File has header
+	"""
+	parsedResult = {}
+	lines = parseCSVFile(inputFile)[1:]
+	lines = [ele for ele in lines if ele]
+	acceptedSubmission = [line for line in lines if str(line[9]) == 'accept']
+	rejectedSubmission = [line for line in lines if str(line[9]) == 'reject']
+
+	acceptanceRate = float(len(acceptedSubmission)) / len(lines)
+
+	submissionTimes = [parseSubmissionTime(str(ele[5])) for ele in lines]
+	submissionTimes = Counter(submissionTimes)
+	timeStamps = sorted([k for k in submissionTimes])
+	submittedNumber = [0 for n in len(timeStamps)]
+	for index, timeStamp in enumerate(timeStamps):
+		if index == 0:
+			submittedNumber[index] = submissionTimes[timeStamp]
+		else:
+			submittedNumber[index] = submissionTimes[timeStamp] + submittedNumber[index - 1]
+
+	timeSeries = {'time': timeStamps, 'number': submittedNumber}
+
+	acceptedKeywords = [str(ele[8]).tolower().replace("\r", "").split("\n") for ele in acceptedSubmission]
+	acceptedKeywords = [ele for item in acceptedKeywords for ele in item]
+	acceptedKeywordMap = {k : v for k, v in Counter(acceptedKeywords)}
+
+	rejectedKeywords = [str(ele[8]).tolower().replace("\r", "").split("\n") for ele in rejectedSubmission]
+	rejectedKeywords = [ele for item in rejectedKeywords for ele in item]
+	rejectedKeywordMap = {k : v for k, v in Counter(rejectedKeywords)}
+
+	allKeywords = [str(ele[8]).tolower().replace("\r", "").split("\n") for ele in lines]
+	allKeywords = [ele for item in allKeywords for ele in item]
+	allKeywordMap = {k : v for k, v in Counter(allKeywords)}
+
+	tracks = set([str(ele[2]) for ele in lines])
+	paperGroupsByTrack = {track : [line for line in lines if str(line[2]) == track] for track in tracks}
+	keywordsGroupByTrack = {}
+	acceptanceRateByTrack = {}
+	for track, papers in paperGroupsByTrack.iteritems:
+		keywords = [str(ele[8]).tolower().replace("\r", "").split("\n") for ele in papers]
+		keywords = [ele for item in keywords for ele in item]
+		keywordMap = {k : v for k, v in Counter(keywords)}
+		keywordsGroupByTrack[track] = keywordMap
+
+		acceptedPapersPerTrack = [ele for ele in papers if str(ele[9]) == 'accept']
+		acceptanceRateByTrack[track] = float(len(acceptedPapersPerTrack)) / len(papers)
+
+	acceptedAuthors = [str(ele[4]).replace(" and ", ", ").split(", ") for ele in acceptedSubmission]
+	acceptedAuthors = [ele for item in acceptedAuthors for ele in item]
+	topAcceptedAuthors = {ele[0] : ele[1] for ele in Counter(acceptedAuthors).most_common(10)}
+
+	parsedResult['acceptanceRate'] = acceptanceRate
+	parsedResult['overallKeywordMap'] = allKeywordMap
+	parsedResult['acceptedKeywordMap'] = acceptedKeywordMap
+	parsedResult['rejectedKeywordMap'] = rejectedKeywordMap
+	parsedResult['keywordsByTrack'] = keywordsGroupByTrack
+	parsedResult['acceptanceRateByTrack'] = acceptanceRateByTrack
+	parsedResult['topAcceptedAuthors'] = topAcceptedAuthors
+	parsedResult['timeSeries'] = timeSeries
+
+	return {'infoType': 'submission', 'infoData': parsedResult}
 
 if __name__ == "__main__":
 	parseCSVFile(fileName)

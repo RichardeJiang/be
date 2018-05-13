@@ -58,6 +58,10 @@ def testCSVFileFormatMatching(inputFile, selectedType):
 	else:
 		return len(firstRow) == 15
 
+def parseSubmissionTime(timeStr):
+	date = timeStr.split(" ")[0]
+	return date
+
 def returnTestChartData(inputFile):
 	"""
 	Just return dummy data for testing the Charts construction

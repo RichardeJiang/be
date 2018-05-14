@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 
 from utils import parseCSVFileFromDjangoFile, isNumber, returnTestChartData
-from getInsight import parseAuthorCSVFile, getReviewScoreInfo, getAuthorInfo
+from getInsight import parseAuthorCSVFile, getReviewScoreInfo, getAuthorInfo, getReviewInfo, getSubmissionInfo
 
 # Create your views here.
 # Note: a view is a func taking the HTTP request and returns sth accordingly
@@ -33,11 +33,15 @@ def uploadCSV(request):
 			rowContent = getAuthorInfo(csvFile)
 		elif "score.csv" in fileName:
 			rowContent = getReviewScoreInfo(csvFile)
+		elif "review.csv" in fileName:
+			rowContent = getReviewInfo(csvFile)
+		elif "submission.csv" in fileName:
+			rowContent = getSubmissionInfo(csvFile)
 		else:
 			rowContent = returnTestChartData(csvFile)
 
 		print type(csvFile.name)
-		
+
 		if request.POST:
 	# current problem: request from axios not recognized as POST
 			# csvFile = request.FILES['file']

@@ -83,6 +83,55 @@ def getReviewScoreInfo(inputFile):
 	parsedResult['meanConfidence'] = sum(confidences) / float(len(confidences))
 	parsedResult['totalReview'] = len(confidences)
 
+	return {'infoType': 'reviewScore', 'infoData': parsedResult}
+
+def getReviewInfo(inputFile):
+	"""
+	review.csv
+	data format: 
+	review ID | paper ID? | reviewer ID | reviewer name | unknown | text | scores | overall score | unknown | unknown | unknown | unknown | date | time | recommend?
+	File has NO header
+
+	score calculation principles:
+	Weighted Average of the scores, using reviewer's confidence as the weights
+
+	recommended principles:
+	Yes: 1; No: 0; weighted average of the 1 and 0's, also using reviewer's confidence as the weights
+	"""
+
+	parsedResult = {}
+	lines = parseCSVFile(inputFile)
+	lines = [ele for ele in lines if ele]
+	evaluation = [str(line[6]).replace("\r", "") for line in lines]
+	submissionIDs = set([str(line[1]) for line in lines])
+
+	scoreList = []
+	recommendList = []
+
+	submissionIDReviewMap = {}
+
+	for submissionID in submissionIDs:
+		reviews = [str(line[6]).replace("\r", "") for line in lines if str(line[1]) == submissionID]
+		print reviews
+		confidences = [float(review.split("\n")[1].split(": ")[1]) for review in reviews]
+		scores = [float(review.split("\n")[0].split(": ")[1]) for review in reviews]
+		# recommends = [1.0 for review in reviews if review.split("\n")[2].split(": ")[1] == "yes" else 0.0]
+		try:
+			recommends = map(lambda review: 1.0 if review.split("\n")[2].split(": ")[1] == "yes" else 0.0, reviews)
+		except:
+			recommends = [0.0 for n in range(len(reviews))]
+		weightedScore = sum(x * y for x, y in zip(scores, confidences)) / sum(confidences)
+		weightedRecommend = sum(x * y for x, y in zip(recommends, confidences)) / sum(confidences)
+
+		submissionIDReviewMap[submissionID] = {'score': weightedScore, 'recommend': weightedRecommend}
+		scoreList.append(weightedScore)
+		recommendList.append(weightedRecommend)
+
+
+	parsedResult['IDReviewMap'] = submissionIDReviewMap
+	parsedResult['scoreList'] = scoreList
+	parsedResult['recommendList'] = recommendList
+
 	return {'infoType': 'review', 'infoData': parsedResult}
 
 def getSubmissionInfo(inputFile):
@@ -103,7 +152,7 @@ def getSubmissionInfo(inputFile):
 	submissionTimes = [parseSubmissionTime(str(ele[5])) for ele in lines]
 	submissionTimes = Counter(submissionTimes)
 	timeStamps = sorted([k for k in submissionTimes])
-	submittedNumber = [0 for n in len(timeStamps)]
+	submittedNumber = [0 for n in range(len(timeStamps))]
 	for index, timeStamp in enumerate(timeStamps):
 		if index == 0:
 			submittedNumber[index] = submissionTimes[timeStamp]
@@ -112,26 +161,26 @@ def getSubmissionInfo(inputFile):
 
 	timeSeries = {'time': timeStamps, 'number': submittedNumber}
 
-	acceptedKeywords = [str(ele[8]).tolower().replace("\r", "").split("\n") for ele in acceptedSubmission]
+	acceptedKeywords = [str(ele[8]).lower().replace("\r", "").split("\n") for ele in acceptedSubmission]
 	acceptedKeywords = [ele for item in acceptedKeywords for ele in item]
-	acceptedKeywordMap = {k : v for k, v in Counter(acceptedKeywords)}
+	acceptedKeywordMap = {k : v for k, v in Counter(acceptedKeywords).iteritems()}
 
-	rejectedKeywords = [str(ele[8]).tolower().replace("\r", "").split("\n") for ele in rejectedSubmission]
+	rejectedKeywords = [str(ele[8]).lower().replace("\r", "").split("\n") for ele in rejectedSubmission]
 	rejectedKeywords = [ele for item in rejectedKeywords for ele in item]
-	rejectedKeywordMap = {k : v for k, v in Counter(rejectedKeywords)}
+	rejectedKeywordMap = {k : v for k, v in Counter(rejectedKeywords).iteritems()}
 
-	allKeywords = [str(ele[8]).tolower().replace("\r", "").split("\n") for ele in lines]
+	allKeywords = [str(ele[8]).lower().replace("\r", "").split("\n") for ele in lines]
 	allKeywords = [ele for item in allKeywords for ele in item]
-	allKeywordMap = {k : v for k, v in Counter(allKeywords)}
+	allKeywordMap = {k : v for k, v in Counter(allKeywords).iteritems()}
 
 	tracks = set([str(ele[2]) for ele in lines])
 	paperGroupsByTrack = {track : [line for line in lines if str(line[2]) == track] for track in tracks}
 	keywordsGroupByTrack = {}
 	acceptanceRateByTrack = {}
-	for track, papers in paperGroupsByTrack.iteritems:
-		keywords = [str(ele[8]).tolower().replace("\r", "").split("\n") for ele in papers]
+	for track, papers in paperGroupsByTrack.iteritems():
+		keywords = [str(ele[8]).lower().replace("\r", "").split("\n") for ele in papers]
 		keywords = [ele for item in keywords for ele in item]
-		keywordMap = {k : v for k, v in Counter(keywords)}
+		keywordMap = {k : v for k, v in Counter(keywords).iteritems()}
 		keywordsGroupByTrack[track] = keywordMap
 
 		acceptedPapersPerTrack = [ele for ele in papers if str(ele[9]) == 'accept']

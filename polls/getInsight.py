@@ -112,7 +112,7 @@ def getReviewInfo(inputFile):
 
 	for submissionID in submissionIDs:
 		reviews = [str(line[6]).replace("\r", "") for line in lines if str(line[1]) == submissionID]
-		print reviews
+		# print reviews
 		confidences = [float(review.split("\n")[1].split(": ")[1]) for review in reviews]
 		scores = [float(review.split("\n")[0].split(": ")[1]) for review in reviews]
 		# recommends = [1.0 for review in reviews if review.split("\n")[2].split(": ")[1] == "yes" else 0.0]
@@ -177,6 +177,12 @@ def getSubmissionInfo(inputFile):
 	paperGroupsByTrack = {track : [line for line in lines if str(line[2]) == track] for track in tracks}
 	keywordsGroupByTrack = {}
 	acceptanceRateByTrack = {}
+	comparableAcceptanceRate = {}
+
+	# Obtained from the JCDL.org website: past conferences
+	comparableAcceptanceRate['year'] = [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018]
+	comparableAcceptanceRate['Full Papers'] = [0.29, 0.28, 0.27, 0.29, 0.29, 0.30, 0.29, 0.30]
+	comparableAcceptanceRate['Short Papers'] = [0.29, 0.37, 0.31, 0.31, 0.32, 0.50, 0.35, 0.32]
 	for track, papers in paperGroupsByTrack.iteritems():
 		keywords = [str(ele[8]).lower().replace("\r", "").split("\n") for ele in papers]
 		keywords = [ele for item in keywords for ele in item]
@@ -185,6 +191,9 @@ def getSubmissionInfo(inputFile):
 
 		acceptedPapersPerTrack = [ele for ele in papers if str(ele[9]) == 'accept']
 		acceptanceRateByTrack[track] = float(len(acceptedPapersPerTrack)) / len(papers)
+
+		if track == "Full Papers" or track == "Short Papers":
+			comparableAcceptanceRate[track].append(float(len(acceptedPapersPerTrack)) / len(papers))
 
 	acceptedAuthors = [str(ele[4]).replace(" and ", ", ").split(", ") for ele in acceptedSubmission]
 	acceptedAuthors = [ele for item in acceptedAuthors for ele in item]
@@ -198,6 +207,7 @@ def getSubmissionInfo(inputFile):
 	parsedResult['acceptanceRateByTrack'] = acceptanceRateByTrack
 	parsedResult['topAcceptedAuthors'] = topAcceptedAuthors
 	parsedResult['timeSeries'] = timeSeries
+	parsedResult['comparableAcceptanceRate'] = comparableAcceptanceRate
 
 	return {'infoType': 'submission', 'infoData': parsedResult}
 

@@ -164,14 +164,17 @@ def getSubmissionInfo(inputFile):
 	acceptedKeywords = [str(ele[8]).lower().replace("\r", "").split("\n") for ele in acceptedSubmission]
 	acceptedKeywords = [ele for item in acceptedKeywords for ele in item]
 	acceptedKeywordMap = {k : v for k, v in Counter(acceptedKeywords).iteritems()}
+	acceptedKeywordList = [[ele[0], ele[1]] for ele in Counter(acceptedKeywords).most_common(20)]
 
 	rejectedKeywords = [str(ele[8]).lower().replace("\r", "").split("\n") for ele in rejectedSubmission]
 	rejectedKeywords = [ele for item in rejectedKeywords for ele in item]
 	rejectedKeywordMap = {k : v for k, v in Counter(rejectedKeywords).iteritems()}
+	rejectedKeywordList = [[ele[0], ele[1]] for ele in Counter(rejectedKeywords).most_common(20)]
 
 	allKeywords = [str(ele[8]).lower().replace("\r", "").split("\n") for ele in lines]
 	allKeywords = [ele for item in allKeywords for ele in item]
 	allKeywordMap = {k : v for k, v in Counter(allKeywords).iteritems()}
+	allKeywordList = [[ele[0], ele[1]] for ele in Counter(allKeywords).most_common(20)]
 
 	tracks = set([str(ele[2]) for ele in lines])
 	paperGroupsByTrack = {track : [line for line in lines if str(line[2]) == track] for track in tracks}
@@ -186,7 +189,8 @@ def getSubmissionInfo(inputFile):
 	for track, papers in paperGroupsByTrack.iteritems():
 		keywords = [str(ele[8]).lower().replace("\r", "").split("\n") for ele in papers]
 		keywords = [ele for item in keywords for ele in item]
-		keywordMap = {k : v for k, v in Counter(keywords).iteritems()}
+		# keywordMap = {k : v for k, v in Counter(keywords).iteritems()}
+		keywordMap = [[ele[0], ele[1]] for ele in Counter(keywords).most_common(20)]
 		keywordsGroupByTrack[track] = keywordMap
 
 		acceptedPapersPerTrack = [ele for ele in papers if str(ele[9]) == 'accept']
@@ -201,8 +205,11 @@ def getSubmissionInfo(inputFile):
 
 	parsedResult['acceptanceRate'] = acceptanceRate
 	parsedResult['overallKeywordMap'] = allKeywordMap
+	parsedResult['overallKeywordList'] = allKeywordList
 	parsedResult['acceptedKeywordMap'] = acceptedKeywordMap
+	parsedResult['acceptedKeywordList'] = acceptedKeywordList
 	parsedResult['rejectedKeywordMap'] = rejectedKeywordMap
+	parsedResult['rejectedKeywordList'] = rejectedKeywordList
 	parsedResult['keywordsByTrack'] = keywordsGroupByTrack
 	parsedResult['acceptanceRateByTrack'] = acceptanceRateByTrack
 	parsedResult['topAcceptedAuthors'] = topAcceptedAuthors

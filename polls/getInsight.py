@@ -107,6 +107,7 @@ def getReviewInfo(inputFile):
 
 	scoreList = []
 	recommendList = []
+	confidenceList = []
 
 	submissionIDReviewMap = {}
 
@@ -128,6 +129,8 @@ def getReviewInfo(inputFile):
 		# print reviews
 		confidences = [float(review.split("\n")[1].split(": ")[1]) for review in reviews]
 		scores = [float(review.split("\n")[0].split(": ")[1]) for review in reviews]
+
+		confidenceList.append(sum(confidences) / len(confidences))
 		# recommends = [1.0 for review in reviews if review.split("\n")[2].split(": ")[1] == "yes" else 0.0]
 		try:
 			recommends = map(lambda review: 1.0 if review.split("\n")[2].split(": ")[1] == "yes" else 0.0, reviews)
@@ -147,6 +150,9 @@ def getReviewInfo(inputFile):
 
 	parsedResult['IDReviewMap'] = submissionIDReviewMap
 	parsedResult['scoreList'] = scoreList
+	parsedResult['meanScore'] = sum(scoreList) / len(scoreList)
+	parsedResult['meanRecommend'] = sum(recommendList) / len(recommendList)
+	parsedResult['meanConfidence'] = sum(confidenceList) / len(confidenceList)
 	parsedResult['recommendList'] = recommendList
 	parsedResult['scoreDistribution'] = {'labels': scoreDistributionLabels, 'counts': scoreDistributionCounts}
 	parsedResult['recommendDistribution'] = {'labels': recommendDistributionLabels, 'counts': recommendDistributionCounts}

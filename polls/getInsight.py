@@ -150,16 +150,33 @@ def getSubmissionInfo(inputFile):
 	acceptanceRate = float(len(acceptedSubmission)) / len(lines)
 
 	submissionTimes = [parseSubmissionTime(str(ele[5])) for ele in lines]
+	lastEditTimes = [parseSubmissionTime(str(ele[6])) for ele in lines]
 	submissionTimes = Counter(submissionTimes)
+	lastEditTimes = Counter(lastEditTimes)
 	timeStamps = sorted([k for k in submissionTimes])
+	lastEditStamps = sorted([k for k in lastEditTimes])
 	submittedNumber = [0 for n in range(len(timeStamps))]
+	lastEditNumber = [0 for n in range(len(lastEditStamps))]
+	timeSeries = []
+	lastEditSeries = []
 	for index, timeStamp in enumerate(timeStamps):
 		if index == 0:
 			submittedNumber[index] = submissionTimes[timeStamp]
 		else:
 			submittedNumber[index] = submissionTimes[timeStamp] + submittedNumber[index - 1]
 
-	timeSeries = {'time': timeStamps, 'number': submittedNumber}
+		timeSeries.append({'x': timeStamp, 'y': submittedNumber[index]})
+
+	for index, lastEditStamp in enumerate(lastEditStamps):
+		if index == 0:
+			lastEditNumber[index] = lastEditTimes[lastEditStamp]
+		else:
+			lastEditNumber[index] = lastEditTimes[lastEditStamp] + lastEditNumber[index - 1]
+
+		lastEditSeries.append({'x': lastEditStamp, 'y': lastEditNumber[index]})
+
+	# timeSeries = {'time': timeStamps, 'number': submittedNumber}
+	# lastEditSeries = {'time': lastEditStamps, 'number': lastEditNumber}
 
 	acceptedKeywords = [str(ele[8]).lower().replace("\r", "").split("\n") for ele in acceptedSubmission]
 	acceptedKeywords = [ele for item in acceptedKeywords for ele in item]
@@ -214,6 +231,7 @@ def getSubmissionInfo(inputFile):
 	parsedResult['acceptanceRateByTrack'] = acceptanceRateByTrack
 	parsedResult['topAcceptedAuthors'] = topAcceptedAuthors
 	parsedResult['timeSeries'] = timeSeries
+	parsedResult['lastEditSeries'] = lastEditSeries
 	parsedResult['comparableAcceptanceRate'] = comparableAcceptanceRate
 
 	return {'infoType': 'submission', 'infoData': parsedResult}

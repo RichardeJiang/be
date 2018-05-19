@@ -110,6 +110,19 @@ def getReviewInfo(inputFile):
 
 	submissionIDReviewMap = {}
 
+	# Idea: from -3 to 3 (min to max scores possible), every 0.25 will be a gap
+	scoreDistributionCounts = [0] * int((3 + 3) / 0.25)
+	recommendDistributionCounts = [0] * int((1 - 0) / 0.1)
+
+	scoreDistributionLabels = [" ~ "] * len(scoreDistributionCounts)
+	recommendDistributionLabels = [" ~ "] * len(recommendDistributionCounts)
+
+	for index, col in enumerate(scoreDistributionCounts):
+		scoreDistributionLabels[index] = str(-3 + 0.25 * index) + " ~ " + str(-3 + 0.25 * index + 0.25)
+
+	for index, col in enumerate(recommendDistributionCounts):
+		recommendDistributionLabels[index] = str(0 + 0.1 * index) + " ~ " + str(0 + 0.1 * index + 0.1)
+
 	for submissionID in submissionIDs:
 		reviews = [str(line[6]).replace("\r", "") for line in lines if str(line[1]) == submissionID]
 		# print reviews
@@ -123,6 +136,10 @@ def getReviewInfo(inputFile):
 		weightedScore = sum(x * y for x, y in zip(scores, confidences)) / sum(confidences)
 		weightedRecommend = sum(x * y for x, y in zip(recommends, confidences)) / sum(confidences)
 
+		scoreColumn = min(int((weightedScore + 3) / 0.25), 23)
+		recommendColumn = min(int((weightedRecommend) / 0.1), 9)
+		scoreDistributionCounts[scoreColumn] += 1
+		recommendDistributionCounts[recommendColumn] += 1
 		submissionIDReviewMap[submissionID] = {'score': weightedScore, 'recommend': weightedRecommend}
 		scoreList.append(weightedScore)
 		recommendList.append(weightedRecommend)
@@ -131,6 +148,8 @@ def getReviewInfo(inputFile):
 	parsedResult['IDReviewMap'] = submissionIDReviewMap
 	parsedResult['scoreList'] = scoreList
 	parsedResult['recommendList'] = recommendList
+	parsedResult['scoreDistribution'] = {'labels': scoreDistributionLabels, 'counts': scoreDistributionCounts}
+	parsedResult['recommendDistribution'] = {'labels': recommendDistributionLabels, 'counts': recommendDistributionCounts}
 
 	return {'infoType': 'review', 'infoData': parsedResult}
 
@@ -218,7 +237,9 @@ def getSubmissionInfo(inputFile):
 
 	acceptedAuthors = [str(ele[4]).replace(" and ", ", ").split(", ") for ele in acceptedSubmission]
 	acceptedAuthors = [ele for item in acceptedAuthors for ele in item]
-	topAcceptedAuthors = {ele[0] : ele[1] for ele in Counter(acceptedAuthors).most_common(10)}
+	topAcceptedAuthors = Counter(acceptedAuthors).most_common(10)
+	topAcceptedAuthorsMap = {'names': [ele[0] for ele in topAcceptedAuthors], 'counts': [ele[1] for ele in topAcceptedAuthors]}
+	# topAcceptedAuthors = {ele[0] : ele[1] for ele in Counter(acceptedAuthors).most_common(10)}
 
 	parsedResult['acceptanceRate'] = acceptanceRate
 	parsedResult['overallKeywordMap'] = allKeywordMap
@@ -229,7 +250,7 @@ def getSubmissionInfo(inputFile):
 	parsedResult['rejectedKeywordList'] = rejectedKeywordList
 	parsedResult['keywordsByTrack'] = keywordsGroupByTrack
 	parsedResult['acceptanceRateByTrack'] = acceptanceRateByTrack
-	parsedResult['topAcceptedAuthors'] = topAcceptedAuthors
+	parsedResult['topAcceptedAuthors'] = topAcceptedAuthorsMap
 	parsedResult['timeSeries'] = timeSeries
 	parsedResult['lastEditSeries'] = lastEditSeries
 	parsedResult['comparableAcceptanceRate'] = comparableAcceptanceRate

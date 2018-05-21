@@ -223,6 +223,7 @@ def getSubmissionInfo(inputFile):
 	keywordsGroupByTrack = {}
 	acceptanceRateByTrack = {}
 	comparableAcceptanceRate = {}
+	topAuthorsByTrack = {}
 
 	# Obtained from the JCDL.org website: past conferences
 	comparableAcceptanceRate['year'] = [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018]
@@ -237,6 +238,12 @@ def getSubmissionInfo(inputFile):
 
 		acceptedPapersPerTrack = [ele for ele in papers if str(ele[9]) == 'accept']
 		acceptanceRateByTrack[track] = float(len(acceptedPapersPerTrack)) / len(papers)
+
+		acceptedPapersThisTrack = [paper for paper in papers if str(paper[9]) == 'accept']
+		acceptedAuthorsThisTrack = [str(ele[4]).replace(" and ", ", ").split(", ") for ele in acceptedPapersThisTrack]
+		acceptedAuthorsThisTrack = [ele for item in acceptedAuthorsThisTrack for ele in item]
+		topAcceptedAuthorsThisTrack = Counter(acceptedAuthorsThisTrack).most_common(10)
+		topAuthorsByTrack[track] = {'names': [ele[0] for ele in topAcceptedAuthorsThisTrack], 'counts': [ele[1] for ele in topAcceptedAuthorsThisTrack]}
 
 		if track == "Full Papers" or track == "Short Papers":
 			comparableAcceptanceRate[track].append(float(len(acceptedPapersPerTrack)) / len(papers))
@@ -257,6 +264,7 @@ def getSubmissionInfo(inputFile):
 	parsedResult['keywordsByTrack'] = keywordsGroupByTrack
 	parsedResult['acceptanceRateByTrack'] = acceptanceRateByTrack
 	parsedResult['topAcceptedAuthors'] = topAcceptedAuthorsMap
+	parsedResult['topAuthorsByTrack'] = topAuthorsByTrack
 	parsedResult['timeSeries'] = timeSeries
 	parsedResult['lastEditSeries'] = lastEditSeries
 	parsedResult['comparableAcceptanceRate'] = comparableAcceptanceRate

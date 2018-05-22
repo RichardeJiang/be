@@ -1,2 +1,4 @@
 Django==1.11.11
 djangorestframework
+gunicorn==19.8.1
+whitenoise==3.3.1

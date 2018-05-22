@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '#%t+^-k$=89osi4r2a2!)=inp$ap2+8q763qr3m^!w%ehj_rp('
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver', '0.0.0.0', 'chairviz.herokuapp.com']
 

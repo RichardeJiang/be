@@ -1,2 +1,2 @@
 Django==1.11.11
-rest_framework==3.8
+rest_framework
